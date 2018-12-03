@@ -66,10 +66,11 @@ class MainService:
         '''main loop which keeps our threads alive and refreshes the token'''
         loop_timer = 5
         while not self.kodimonitor.waitForAbort(loop_timer):
+            log_msg("main_loop step")
             # monitor logged in user
             cmd = self.win.getProperty("spotify-cmd").decode("utf-8")
             if cmd == "__LOGOUT__":
-                log_msg("logout cmd received")
+                log_msg("logout cmd received", xbmc.LOGNOTICE)
                 self.stop_connect_daemon()
                 self.win.clearProperty("spotify-cmd")
                 self.current_user = None
@@ -77,12 +78,12 @@ class MainService:
                 self.switch_user(True)
             elif not self.auth_token:
                 # we do not yet have a token
-                log_msg("retrieving token...")
+                log_msg("Auth token is not set, renew token", xbmc.LOGNOTICE)
                 if self.renew_token():
                     xbmc.executebuiltin("Container.Refresh")
             elif self.auth_token and self.auth_token['expires_at'] - 60 <= (int(time.time())):
                 # token needs refreshing !
-                log_msg("token needs to be refreshed")
+                log_msg("Auth token expires, renew token", xbmc.LOGNOTICE)
                 self.renew_token()
             elif self.connect_player.connect_playing:
                 # monitor fake connect OSD for remote track changes
